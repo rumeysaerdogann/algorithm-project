@@ -2,6 +2,8 @@ from collections import defaultdict
 import heapq
 import time
 
+from graph_data import graph, source_node, target_node
+
 
 # -------------------------------------------------------
 # GRAPH REPRESENTATION
@@ -14,6 +16,14 @@ import time
 # - Memory efficient
 # - Suitable for sparse graphs
 # - Fast edge traversal
+#
+# Features:
+# - Non-negative edge weights
+# - Efficient for shortest path queries
+#
+# Suitable for:
+# - Dijkstra
+# - Bidirectional Dijkstra
 # -------------------------------------------------------
 
 class Graph:
@@ -54,7 +64,10 @@ def dijkstra(graph, start):
 
     # Initialize distances
     distances = defaultdict(lambda: float('inf'))
+    previous = {}
+
     distances[start] = 0
+    previous[start] = None
 
     # Min Heap
     priority_queue = [(0, start)]
@@ -75,10 +88,11 @@ def dijkstra(graph, start):
             if distance < distances[neighbor]:
 
                 distances[neighbor] = distance
+                previous[neighbor] = current_node
 
                 heapq.heappush(priority_queue, (distance, neighbor))
 
-    return distances
+    return distances, previous
 
 
 # -------------------------------------------------------
@@ -119,9 +133,8 @@ def bidirectional_dijkstra(graph, reverse_graph, start, target):
 
     while forward_pq and backward_pq:
 
-       
         # FORWARD SEARCH
-       
+
         current_forward_dist, current_forward_node = heapq.heappop(forward_pq)
 
         if current_forward_node not in forward_visited:
@@ -139,9 +152,8 @@ def bidirectional_dijkstra(graph, reverse_graph, start, target):
 
                     heapq.heappush(forward_pq, (distance, neighbor))
 
-
         # BACKWARD SEARCH
-        
+
         current_backward_dist, current_backward_node = heapq.heappop(backward_pq)
 
         if current_backward_node not in backward_visited:
@@ -159,7 +171,6 @@ def bidirectional_dijkstra(graph, reverse_graph, start, target):
 
                     heapq.heappush(backward_pq, (distance, neighbor))
 
-       
         # MEETING POINT
 
         common_nodes = forward_visited.intersection(backward_visited)
@@ -178,70 +189,93 @@ def bidirectional_dijkstra(graph, reverse_graph, start, target):
     return best_distance
 
 
+# -------------------------------------------------------
+# PATH RECONSTRUCTION
+# -------------------------------------------------------
 
-# TEST GRAPH
+def get_path(previous, node):
+
+    path = []
+
+    while node is not None:
+
+        path.append(node)
+        node = previous.get(node)
+
+    path.reverse()
+
+    return path
+
+
+# -------------------------------------------------------
+# BUILD GRAPH
+# -------------------------------------------------------
 
 g = Graph()
 
-graph_data = {
+for u in graph:
 
-    "nodes": ["A", "B", "C", "D", "E", "F"],
+    for v, w in graph[u]:
 
-    "edges": [
-
-        {"from": "A", "to": "B", "weight": 4},
-        {"from": "A", "to": "C", "weight": 2},
-        {"from": "B", "to": "C", "weight": 5},
-        {"from": "B", "to": "D", "weight": 10},
-        {"from": "C", "to": "D", "weight": 3},
-        {"from": "D", "to": "E", "weight": 2},
-        {"from": "E", "to": "F", "weight": 5},
-        {"from": "A", "to": "E", "weight": 15}
-
-    ]
-}
-
-# Build graph
-for edge in graph_data["edges"]:
-
-    u = edge["from"]
-    v = edge["to"]
-    w = edge["weight"]
-
-    g.add_edge(u, v, w)
+        g.add_edge(u, v, w)
 
 
-
+# -------------------------------------------------------
 # STANDARD DIJKSTRA EXECUTION
+# -------------------------------------------------------
+
+print("=================================================")
+print("DIJKSTRA RESULTS")
+print("=================================================\n")
 
 start_time = time.perf_counter()
 
-dijkstra_result = dijkstra(g.graph, 'A')
+dijkstra_result, dijkstra_previous = dijkstra(
+    g.graph,
+    source_node
+)
 
 end_time = time.perf_counter()
 
 dijkstra_runtime = end_time - start_time
 
 
-
+# -------------------------------------------------------
 # STANDARD DIJKSTRA OUTPUT
+# -------------------------------------------------------
 
-
+print("Distances:")
 print(dict(dijkstra_result))
+
+print("\nPaths:")
+
+for node in graph:
+
+    print(
+        f"{source_node} -> {node}:",
+        get_path(dijkstra_previous, node),
+        "| Cost:",
+        dijkstra_result[node]
+    )
 
 print(f"\nRuntime: {dijkstra_runtime:.8f} seconds")
 
 
-
+# -------------------------------------------------------
 # BIDIRECTIONAL DIJKSTRA EXECUTION
+# -------------------------------------------------------
+
+print("\n=================================================")
+print("BIDIRECTIONAL DIJKSTRA RESULTS")
+print("=================================================\n")
 
 start_time = time.perf_counter()
 
 bidirectional_result = bidirectional_dijkstra(
     g.graph,
     g.reverse_graph,
-    'A',
-    'F'
+    source_node,
+    target_node
 )
 
 end_time = time.perf_counter()
@@ -249,9 +283,25 @@ end_time = time.perf_counter()
 bidirectional_runtime = end_time - start_time
 
 
-
+# -------------------------------------------------------
 # BIDIRECTIONAL DIJKSTRA OUTPUT
+# -------------------------------------------------------
 
-print(f"Shortest distance from A to F: {bidirectional_result}")
+print(
+    f"Shortest distance from {source_node} to {target_node}:",
+    bidirectional_result
+)
 
 print(f"\nRuntime: {bidirectional_runtime:.8f} seconds")
+
+
+# -------------------------------------------------------
+# RUNTIME COMPARISON
+# -------------------------------------------------------
+
+print("\n=================================================")
+print("RUNTIME COMPARISON")
+print("=================================================\n")
+
+print(f"Dijkstra Runtime               : {dijkstra_runtime:.8f} seconds")
+print(f"Bidirectional Dijkstra Runtime : {bidirectional_runtime:.8f} seconds")

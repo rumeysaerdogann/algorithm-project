@@ -1,5 +1,7 @@
-from collections import deque, defaultdict
+from collections import deque
 import time
+
+from graph_data import graph, nodes, source_node
 
 
 # -------------------------------------------------------
@@ -13,28 +15,15 @@ import time
 # - Memory efficient
 # - Suitable for sparse graphs
 # - Fast neighbor traversal
+#
+# Contains:
+# - Negative edge
+# - No negative cycle
+#
+# Suitable for:
+# - Bellman-Ford
+# - SPFA
 # -------------------------------------------------------
-
-
-# TEST GRAPH
-
-graph = defaultdict(list)
-
-graph["A"].append(("B", 4))
-graph["A"].append(("C", 2))
-
-graph["B"].append(("C", 5))
-graph["B"].append(("D", 10))
-
-graph["C"].append(("D", 3))
-
-graph["D"].append(("E", -2))
-
-graph["E"].append(("F", 5))
-
-graph["A"].append(("E", 15))
-
-nodes = ["A", "B", "C", "D", "E", "F"]
 
 
 # -------------------------------------------------------
@@ -142,8 +131,9 @@ def spfa(graph, nodes, source):
     return distance, previous
 
 
-
+# -------------------------------------------------------
 # PATH RECONSTRUCTION
+# -------------------------------------------------------
 
 def get_path(previous, node):
 
@@ -159,57 +149,93 @@ def get_path(previous, node):
     return path
 
 
-
+# -------------------------------------------------------
 # BELLMAN-FORD EXECUTION
+# -------------------------------------------------------
+
+print("\n==============================")
+print("BELLMAN-FORD RESULTS")
+print("==============================")
 
 start_time = time.perf_counter()
 
-bf_distance, bf_previous = bellman_ford(graph, nodes, "A")
+bf_distance, bf_previous = bellman_ford(graph, nodes, source_node)
 
 end_time = time.perf_counter()
 
 bf_runtime = end_time - start_time
 
 
-
+# -------------------------------------------------------
 # BELLMAN-FORD OUTPUT
+# -------------------------------------------------------
 
 if bf_distance is not None:
 
-    print("Distances:")
+    print("\nDistances:")
     print(bf_distance)
 
     print("\nPaths:")
 
     for node in nodes:
 
-        print(node, ":", get_path(bf_previous, node))
+        print(
+            node,
+            ":",
+            get_path(bf_previous, node),
+            "| Cost:",
+            bf_distance[node]
+        )
 
     print(f"\nRuntime: {bf_runtime:.8f} seconds")
 
 
-
+# -------------------------------------------------------
 # SPFA EXECUTION
+# -------------------------------------------------------
+
+print("\n==============================")
+print("SPFA RESULTS")
+print("==============================")
 
 start_time = time.perf_counter()
 
-spfa_distance, spfa_previous = spfa(graph, nodes, "A")
+spfa_distance, spfa_previous = spfa(graph, nodes, source_node)
 
 end_time = time.perf_counter()
 
 spfa_runtime = end_time - start_time
 
 
-
+# -------------------------------------------------------
 # SPFA OUTPUT
+# -------------------------------------------------------
 
-print("Distances:")
+print("\nDistances:")
 print(spfa_distance)
 
 print("\nPaths:")
 
 for node in nodes:
 
-    print(node, ":", get_path(spfa_previous, node))
+    print(
+        node,
+        ":",
+        get_path(spfa_previous, node),
+        "| Cost:",
+        spfa_distance[node]
+    )
 
 print(f"\nRuntime: {spfa_runtime:.8f} seconds")
+
+
+# -------------------------------------------------------
+# RUNTIME COMPARISON
+# -------------------------------------------------------
+
+print("\n==============================")
+print("RUNTIME COMPARISON")
+print("==============================")
+
+print(f"Bellman-Ford Runtime : {bf_runtime:.8f} seconds")
+print(f"SPFA Runtime         : {spfa_runtime:.8f} seconds")

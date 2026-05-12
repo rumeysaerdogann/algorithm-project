@@ -1,5 +1,6 @@
-from collections import defaultdict
 import time
+
+from graph_data import graph_list, V
 
 
 # -------------------------------------------------------
@@ -13,7 +14,17 @@ import time
 # - Memory efficient
 # - Suitable for sparse graphs
 # - Fast edge traversal
+#
+# Features:
+# - Directed graph
+# - No cycles
+# - Supports negative edge weights
+#
+# Suitable for:
+# - DAG Shortest Path
+# - Topological Sorting
 # -------------------------------------------------------
+
 
 # -------------------------------------------------------
 # TOPOLOGICAL SORT
@@ -78,6 +89,8 @@ def dag_shortest_path(graph, V, start):
 
     # Initialize distances
     dist = [float('inf')] * V
+    previous = [None] * V
+
     dist[start] = 0
 
     # Relax edges in topological order
@@ -90,50 +103,71 @@ def dag_shortest_path(graph, V, start):
                 if dist[u] + w < dist[v]:
 
                     dist[v] = dist[u] + w
+                    previous[v] = u
 
-    return dist
-
-
-# =========================================================
-# TEST GRAPH
+    return dist, previous
 
 
-V = 6
+# -------------------------------------------------------
+# PATH RECONSTRUCTION
+# -------------------------------------------------------
 
-graph = defaultdict(list)
+def get_path(previous, target):
 
-graph[0].append((1, 5))
-graph[0].append((2, 3))
+    path = []
 
-graph[1].append((3, 6))
-graph[1].append((2, 2))
+    while target is not None:
 
-graph[2].append((4, 4))
-graph[2].append((5, 2))
-graph[2].append((3, 7))
+        path.append(target)
+        target = previous[target]
 
-graph[3].append((4, -1))
+    path.reverse()
 
-graph[4].append((5, -2))
-
+    return path
 
 
+# -------------------------------------------------------
 # EXECUTION
+# -------------------------------------------------------
 
-start_node = 1
+start_node = 0
+
+print("\n==============================")
+print("DAG SHORTEST PATH RESULTS")
+print("==============================")
 
 start_time = time.perf_counter()
 
-distances = dag_shortest_path(graph, V, start_node)
+distances, previous = dag_shortest_path(
+    graph_list,
+    V,
+    start_node
+)
 
 end_time = time.perf_counter()
 
+runtime = end_time - start_time
 
 
+# -------------------------------------------------------
 # OUTPUT
+# -------------------------------------------------------
+
+print("\nDistances:")
 
 for i in range(V):
 
-    print(f"Distance from node {start_node} to node {i}: {distances[i]}")
+    print(f"Node {i}: {distances[i]}")
 
-print(f"\nRuntime: {end_time - start_time:.8f} seconds")
+print("\nPaths:")
+
+for i in range(V):
+
+    print(
+        f"{start_node} -> {i}:",
+        get_path(previous, i),
+        "| Cost:",
+        distances[i]
+    )
+
+print(f"\nRuntime: {runtime:.8f} seconds")

@@ -1,6 +1,30 @@
 import heapq
 import time
 
+from graph_data import graph_list, graph_matrix, V
+
+
+# -------------------------------------------------------
+# GRAPH REPRESENTATION
+# -------------------------------------------------------
+#
+# Structures:
+# - Adjacency List
+# - Adjacency Matrix
+#
+# Advantages:
+# - Matrix is suitable for dense graphs
+# - List is memory efficient
+#
+# Features:
+# - Supports negative edge weights
+# - No negative cycles
+#
+# Suitable for:
+# - Floyd-Warshall
+# - Johnson's Algorithm
+# -------------------------------------------------------
+
 
 # -------------------------------------------------------
 # FLOYD-WARSHALL ALGORITHM
@@ -14,9 +38,6 @@ import time
 # - Supports negative edge weights
 # - Uses adjacency matrix representation
 #
-# Complexity:
-# Time  -> O(V^3)
-# Space -> O(V^2)
 # -------------------------------------------------------
 
 def floyd_warshall(graph_matrix, V):
@@ -74,9 +95,6 @@ def bellman_ford(edges, V, start):
 # Purpose:
 # Computes shortest paths from a source node
 #
-# Complexity:
-# Time  -> O((V + E) log V)
-# Space -> O(V + E)
 # -------------------------------------------------------
 
 def dijkstra(graph, V, start):
@@ -118,9 +136,6 @@ def dijkstra(graph, V, start):
 # - Combines Bellman-Ford and Dijkstra
 # - Efficient for sparse graphs
 #
-# Complexity:
-# Time  -> O(VE log V)
-# Space -> O(V + E)
 # -------------------------------------------------------
 
 def johnsons_algorithm(graph_list, V):
@@ -174,45 +189,13 @@ def johnsons_algorithm(graph_list, V):
     return apsp_distances
 
 
-# TEST GRAPH
-
-graph_list = {
-
-    0: [(1, 4), (2, 2), (4, 15)],
-    1: [(2, 5), (3, 10)],
-    2: [(3, 3)],
-    3: [(4, -2)],
-    4: [(5, 5)],
-    5: []
-
-}
-
-V = 6
-
-
-# ADJACENCY MATRIX CONVERSION
-
-graph_matrix = [
-
-    [float('inf')] * V
-
-    for _ in range(V)
-]
-
-# Distance to self = 0
-for i in range(V):
-
-    graph_matrix[i][i] = 0
-
-# Convert adjacency list to matrix
-for u in graph_list:
-
-    for v, w in graph_list[u]:
-
-        graph_matrix[u][v] = w
-
-
+# -------------------------------------------------------
 # FLOYD-WARSHALL EXECUTION
+# -------------------------------------------------------
+
+print("=================================================")
+print("FLOYD-WARSHALL RESULTS")
+print("=================================================\n")
 
 start = time.perf_counter()
 
@@ -224,7 +207,24 @@ floyd_result = floyd_warshall(
 fw_time = time.perf_counter() - start
 
 
+# -------------------------------------------------------
+# FLOYD-WARSHALL OUTPUT
+# -------------------------------------------------------
+
+for row in floyd_result:
+
+    print(row)
+
+print(f"\nRuntime: {fw_time:.8f} seconds")
+
+
+# -------------------------------------------------------
 # JOHNSON EXECUTION
+# -------------------------------------------------------
+
+print("\n=================================================")
+print("JOHNSON'S ALGORITHM RESULTS")
+print("=================================================\n")
 
 start = time.perf_counter()
 
@@ -236,27 +236,24 @@ johnson_result = johnsons_algorithm(
 j_time = time.perf_counter() - start
 
 
-# FLOYD-WARSHALL OUTPUT
-
-print("=================================================")
-print("FLOYD-WARSHALL RESULTS")
-print("=================================================\n")
-
-for row in floyd_result:
-
-    print(row)
-
-print(f"\nRuntime: {fw_time:.8f} seconds")
-
-
+# -------------------------------------------------------
 # JOHNSON OUTPUT
-
-print("\n=================================================")
-print("JOHNSON'S ALGORITHM RESULTS")
-print("=================================================\n")
+# -------------------------------------------------------
 
 for row in johnson_result:
 
     print(row)
 
 print(f"\nRuntime: {j_time:.8f} seconds")
+
+
+# -------------------------------------------------------
+# RUNTIME COMPARISON
+# -------------------------------------------------------
+
+print("\n=================================================")
+print("RUNTIME COMPARISON")
+print("=================================================\n")
+
+print(f"Floyd-Warshall Runtime : {fw_time:.8f} seconds")
+print(f"Johnson Runtime        : {j_time:.8f} seconds")
